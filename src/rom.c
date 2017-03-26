@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <exec/types.h>
 
 #include "rom.h"
 #include "hardware.h"
 #include "file.h"
+#include "cfgreg.h"
 
 #define EXIT_WARNING		5
 #define EXIT_SYNTAX_ERROR	10
@@ -43,13 +45,13 @@ shadowrom_enable(UBYTE romsize_1M)
 
 /*	cfgreg_set(CFG_R0_OFFSET, CFG_R0_WRITELOCKOFF);  */
 	if(romsize_1M) {
-	memcpy((void*) 0xE00000, (void*) 0xE00000, 512*1024);	
-	memcpy((void*) 0xF80000, (void*) 0xF80000, 512*1024);
+	memcpy_fast((void*) 0xE00000, (void*) 0xE00000, 512*1024);	
+	memcpy_fast((void*) 0xF80000, (void*) 0xF80000, 512*1024);
 	cfgreg_set(CFG_MAPROM_ADDR, CFG_ROMSIZE_1M);
 	}
 	else {
 	/* memcpy((void*) 0xE00000, (void*) 0xE00000, 512*1024);	*/
-	memcpy((void*) 0xF80000, (void*) 0xF80000, 512*1024);
+	memcpy_fast((void*) 0xF80000, (void*) 0xF80000, 512*1024);
 	cfgreg_unset(CFG_MAPROM_ADDR, CFG_ROMSIZE_1M);
 	}
 
@@ -60,20 +62,15 @@ shadowrom_enable(UBYTE romsize_1M)
 	return 0;
 }
 
-/* faster memcpy routine */
-/*void
-fast_memcpy(ULONG *dest, ULONG *source, ULONG size) {
-	
-	ULONG i;
-	for(i=source; i < (source + size); i+4) *dest = *source;
-	
-}
-*/
 
-void
+UBYTE
 maprom_disable()
-{
+{	
+	if(cfgreg_read(CFG_MAPROM_ADDR) & CFG_MAPROM) {
 	cfgreg_unset(CFG_MAPROM_ADDR, CFG_MAPROM); 
+	return 0;
+	}
+	else return EXIT_WARNING;
 }
 
 UBYTE
@@ -131,20 +128,20 @@ rom_copy_self(BYTE *rombuf, ULONG romsize)
 		cfgreg_unset(CFG_MAPROM_ADDR, CFG_ROMSIZE_1M);
 		/* memcpy((void*) 0xE00000, (void*) rombuf, S256K);	*/
 		/* memcpy((void*) (0xE00000+S256K), (void*) rombuf, S256K);	*/
-		memcpy((void*) 0xF80000, (void*) rombuf, S256K);	
-		memcpy((void*) (0xF80000+S256K), (void*) rombuf, S256K);
+		memcpy_fast((void*) 0xF80000, (void*) rombuf, S256K);	
+		memcpy_fast((void*) (0xF80000+S256K), (void*) rombuf, S256K);
 		
 		break;
 	case 524288:
 		/*memcpy((void*) 0xE00000, (void*) rombuf, S512K);	*/
 		cfgreg_unset(CFG_MAPROM_ADDR, CFG_ROMSIZE_1M);
-		memcpy((void*) 0xF80000, (void*) rombuf, S512K);
+		memcpy_fast((void*) 0xF80000, (void*) rombuf, S512K);
 		
 		break;
 	case 1048576:
 		cfgreg_set(CFG_MAPROM_ADDR, CFG_ROMSIZE_1M);
-		memcpy((void*) 0xE00000, (void*) rombuf, S512K);
-		memcpy((void*) 0xF80000, (void*) (rombuf + S512K), S512K);
+		memcpy_fast((void*) 0xE00000, (void*) rombuf, S512K);
+		memcpy_fast((void*) 0xF80000, (void*) (rombuf + S512K), S512K);
 		
 		break;
 	default:
@@ -154,5 +151,24 @@ rom_copy_self(BYTE *rombuf, ULONG romsize)
 	}
 
 	return 1;	
+}
+
+void memcpy_fast( ULONG *dest,  ULONG *src, ULONG size){
+	/*ULONG end = (ULONG) src + size;*/
+	/*while ((ULONG) src <= end) {*/
+	size=size/4;
+	
+	while (size) {
+	*dest = *src;
+	src++; dest++;
+	size--;	
+	}
+	
+	/*while (size--) {
+	*dest++ = *src++;	
+	
+	}*/
+	
+	
 }
 

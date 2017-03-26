@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+
 #include <exec/types.h>
 #include <exec/execbase.h>
 #include <proto/exec.h>
@@ -11,20 +12,14 @@
 
 extern BOOL debug;
 
-/* add 4MB of memory between 0x600000 and 0x9FFFFF */
-void
-memory_add_4m(void)
-{
-	if (!memory_check_added(ADDMEM_PCMCIA_BASE))
-		AddMemList(4*1024*1024, MEMF_FAST, ADDMEM_PRI, ADDMEM_PCMCIA_BASE, NULL);
-}
+
 
 /* add non-autoconfiguring memory to the system */
 void
 memory_add_misc(void)
 {
 	if (!memory_check_added(ADDMEM_0_BASE))
-		AddMemList(((1024 + 512)*1024), MEMF_FAST, ADDMEM_PRI, ADDMEM_0_BASE, NULL);
+		AddMemList(((1024 + 512)*1024), MEMF_FAST, ADDMEM_PRI, (void *) ADDMEM_0_BASE, NULL);
 
 	/*if (!memory_check_added(ADDMEM_1_BASE))
 		AddMemList(512*1024, MEMF_FAST, ADDMEM_PRI, ADDMEM_1_BASE, NULL);*/

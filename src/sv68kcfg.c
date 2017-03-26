@@ -1,12 +1,4 @@
-/*
-Savyna68k PLUS configuration program
-
-Based on 9tcfg by rkujawa (Radoslaw Kujawa) https://github.com/rkujawa/9tcfg
-
-Modified by Rafał Chyła (sanjyuubi).
-
-
-*/
+/* Ninetails configuration program */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +29,7 @@ void status_print_reg_inv(UBYTE reg, UBYTE bit);
 
 /* -- global variables -- */
 
-static const STRPTR version = "\0$VER: sv68kcfg 1.0 (01.05.2016)\0";
+static const STRPTR version = "\0$VER: sv68kcfg 1.1 (28.12.2016)\0";
 static const STRPTR id = "\0$Id: 0bd186d77dd243a27c26267de8870027047f7101 $\0";
 
 static LONG *argArray;	/* arguments passed on the command line */
@@ -114,28 +106,35 @@ status_display(void)
 
 	printf("\tSHADOWROM:\t\t\t\t");
 	status_print_reg(r2, CFG_SHADOWROM);
+	
+	printf("\n\n");
+	printf("Type \"sv68kcfg help\" to look at list of options.\n\n");
 }
 
 void
 help(void) 
 {
 	printf("\n");
-	printf("9tcfg     - Ninetails accelerator config tool by R. Kujawa\n\n");
+	printf("sv68kcfg     - Savyna68k PLUS config tool by R. Kujawa\\mod by R.Chyla\n\n");
 	printf("Possible ARGS:\n");
 	printf("HELP      - this help\n");
-	printf("M68K      - MC68000 mode - turn off accelerator (ON/OFF)\n");
-	printf("PCMCIA    - sacrifice 4MB FastRAM for PCMCIA sake (ON/OFF)\n");
-	printf("SHADOWROM - kickstart shadowing (ON/OFF)\n");
-	printf("MAPROM    - enable MAPROM, use with LOADROM (ON/OFF)\n");
+	printf("TURBO     - enable/disable 14MHz mode (ON/OFF)\n");
+	printf("FASTMEM   - enable/disable fastram ($200000-$9FFFFF) (ON/OFF)\n");
+	printf("PSLOWMEM  - enable/disable 1.5MB of fastram in SLOWRAM area (ON/OFF)\n");
+	printf("HDD       - enable/disable HDD controller (Gayle based) (ON/OFF)\n");
+	printf("MAPROM    - enables/disables maprom (use loadrom)\n");
 	printf("LOADROM   - load kickstart file to reserved RAM (up to 1MB)\n");
-	printf("MOREMEM   - 1.5MB more (A80000-B7FFFF, F00000-F7FFFF)\n");
-	printf("INSTCACHE - instruction cache (ON/OFF)\n");
+	printf("SHADOWROM - copy mainboard kicstart to reserved RAM.\n");
+	printf("SHADOWROM1M - same as above but in case you have 1MB ROM onboard\n");
+	printf("MOREMEM   - 1.5MB more (A80000-B7FFFF)\n");
 	printf("REBOOT    - die and rise from ashes \n");
 	printf("DEBUG     - display informations useful only for developers\n");
 	printf("\n");
 	printf("Example:\n");
-	printf("9tcfg MAPROM ON LOADROM=ks3.9.rom MOREMEM PCMCIA ON REBOOT\n");
-	printf("Type 9tcfg without args to view status.\n");
+	printf("sv68kcfg MAPROM ON LOADROM=ks3.9.rom MOREMEM\n");
+	printf("Type sv68kcfg without args to view status.\n");
+	printf("Using SHADOWROM doesn't have any advantages in 7MHz mode.");
+	printf("MAPROM feature automaticly reboots Amiga unless debug is used.\n");
 	printf("\n");
 }
 
@@ -221,6 +220,7 @@ main(int argc, char *argv[])
 	argArray[HDD_ARG] = TOGGLE_EMPTY;
 	argArray[MAPROM_ARG] = TOGGLE_EMPTY;
 	argArray[SHADOWROM_ARG] = TOGGLE_EMPTY;
+	argArray[SHADOWROM1M_ARG] = TOGGLE_EMPTY;
 
 	result = ReadArgs(argTemplate, argArray, NULL);
 
@@ -284,8 +284,10 @@ main(int argc, char *argv[])
 				}
 				
 			}
-		else
-			maprom_disable();
+		else {
+				returnCode = maprom_disable();
+				if(returnCode > returnCode_EXIT) returnCode_EXIT = returnCode;
+		}
 	}
 
 	if (!arg_toggle_isempty(SHADOWROM_ARG)) {
@@ -361,8 +363,8 @@ main(int argc, char *argv[])
 	
 	
 	
-	if (!arg_switch_isempty(REBOOT_ARG) & (returnCode_EXIT == 0)) {
-	reboot();
+	if (  ( (!arg_switch_isempty(REBOOT_ARG))  || (!arg_toggle_isempty(MAPROM_ARG)))  && returnCode_EXIT == 0) {
+	if(!debug) reboot();
 	}
 
 	

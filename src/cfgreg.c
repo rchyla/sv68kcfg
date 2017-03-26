@@ -8,7 +8,7 @@
 
 #pragma dontwarn 113
 
-static UBYTE *cardaddr = CFG_ADDRESS;
+static UBYTE *cardaddr = (void*) CFG_ADDRESS;
 
 extern BOOL debug;
 

@@ -1,6 +1,7 @@
 /* Ninetails configuration program */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <exec/types.h>
 #include <dos/dos.h>

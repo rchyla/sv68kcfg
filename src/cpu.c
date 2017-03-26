@@ -20,19 +20,6 @@ turbo_disable()
 	cfgreg_unset(CFG_TURBO_ADDR, CFG_TURBO);
 }
 
-void
-speed_enable()
-{
-	cfgreg_set(CFG_TURBO_ADDR, CFG_SPEED);
-}
-
-void
-speed_disable()
-{
-	cfgreg_unset(CFG_TURBO_ADDR, CFG_SPEED);
-}
-
-
 
 void
 fastmem_enable()

@@ -2,7 +2,7 @@
 #ifndef _HARDWARE_H_
 #define _HARDWARE_H_
 
-#define CFG_ADDRESS		0xEF0000	
+#define CFG_ADDRESS		0xE88000	
 
 
 #define CFG_TURBO_ADDR		0x10
